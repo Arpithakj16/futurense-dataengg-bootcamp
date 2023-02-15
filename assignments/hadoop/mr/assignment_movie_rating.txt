@@ -1,0 +1,37 @@
+from mrjob.job import MRJob
+
+
+class Rating_count(MRJob):
+
+       
+        def mapper(self, _, line):
+        	#print(line.split('\t'))
+                (userID,movieID, rating, timestamp) = line.split(',')
+                yield(rating, 1)               
+        
+        def reducer(self, rate, counts):
+                yield(rate, sum(counts))
+if __name__ == '__main__':
+	Rating_count.run()
+
+
+
+
+
+
+
+tech@MILE-BL-4744-LAP:~$ nano WordCount.py
+tech@MILE-BL-4744-LAP:~$ python3 WordCount.py -r hadoop hdfs:////user/training/ratings.csv > out.txt
+
+tech@MILE-BL-4744-LAP:~$ cat out.txt
+"0.5"   1370
+"1.0"   2811
+"1.5"   1791
+"2.0"   7551
+"2.5"   5550
+"3.0"   20047
+"3.5"   13136
+"4.0"   26818
+"4.5"   8551
+"5.0"   13211
+"rating"
