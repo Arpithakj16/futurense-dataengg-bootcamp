@@ -1,0 +1,57 @@
+Transaction isolation: TRANSACTION_REPEATABLE_READ
+0: jdbc:hive2://> use hive_training;
+OK
+No rows affected (0.617 seconds)
+0: jdbc:hive2://> create table rating(userid int,movieid int,rating varchar(20),t string)
+. . . . . . . . > comment "Ratings details"
+. . . . . . . . > ROW FORMAT DELIMITED
+. . . . . . . . > FIELDS TERMINATED BY
+. . . . . . . . > ","
+. . . . . . . . > ;
+OK
+No rows affected (0.63 seconds)
+0: jdbc:hive2://> DROP TABLE RATING;
+OK
+No rows affected (0.565 seconds)
+0: jdbc:hive2://> create table rating(userid int,movieid int,rating varchar(20),t string)
+. . . . . . . . > comment "Ratings details"
+. . . . . . . . > ROW FORMAT DELIMITED
+. . . . . . . . > FIELDS TERMINATED BY ","
+. . . . . . . . > LINES TERMINATED BY "\n"
+. . . . . . . . > STORED AS TEXTFILE;
+OK
+No rows affected (0.085 seconds)
+0: jdbc:hive2://> SHOW TABLES;
+OK
++-----------+
+| tab_name  |
++-----------+
+| employee  |
+| rating    |
++-----------+
+2 rows selected (0.204 seconds)
+
+ jdbc:hive2://> LOAD DATA LOCAL INPATH '/mnt/c/Users/Miles.MILE-BL-4744-LA.000/Downloads/ratings.csv' OVERWRITE INTO TABLE RATING;
+0: jdbc:hive2://> SELECT COUNT(*) FROM RATING;
++---------+
+|   _c0   |
++---------+
+| 100837  |
++---------+
+1 row selected (19.87 seconds)
+0: jdbc:hive2://> SELECT RATING,COUNT(RATING) FROM RATING WHERE RATING<>'rating' GROUP BY RATING;
++---------+--------+
+| rating  |  _c1   |
++---------+--------+
+| 0.5     | 1370   |
+| 1.0     | 2811   |
+| 1.5     | 1791   |
+| 2.0     | 7551   |
+| 2.5     | 5550   |
+| 3.0     | 20047  |
+| 3.5     | 13136  |
+| 4.0     | 26818  |
+| 4.5     | 8551   |
+| 5.0     | 13211  |
++---------+--------+
+10 rows selected (19.68 seconds)
