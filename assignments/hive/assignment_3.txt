@@ -1,0 +1,195 @@
+ jdbc:hive2://> create table Customers(cust_id int,last_name String,first_name String,age int,profession String)
+. . . . . . . . > comment "Customer details"
+. . . . . . . . > ROW FORMAT DELIMITED
+. . . . . . . . > FIELDS TERMINATED BY ","
+. . . . . . . . > LINES TERMINATED BY "\n"
+. . . . . . . . > STORED AS TEXTFILE;
+OK
+No rows affected (0.085 seconds)
+
+ load data local inpath '/home/tech/futurense_hadoop-pyspark/labs/dataset/retail/customers.txt' overwrite into table customers;
+
+
+
+0: jdbc:hive2://> create table Transactions (trans_id int,trans_date date,cust_id int, amount double,category String,desc String,city String,state String,pymt_mode String)
+. . . . . . . . > comment "Transactions details"
+. . . . . . . . > ROW FORMAT DELIMITED
+. . . . . . . . > FIELDS TERMINATED BY ","
+. . . . . . . . > LINES TERMINATED BY "\n"
+. . . . . . . . > STORED AS TEXTFILE;
+OK
+No rows affected (0.065 seconds)
+
+ load data local inpath '/home/tech/futurense_hadoop-pyspark/labs/dataset/retail/transactions.txt' overwrite into table transactions;
+
+
+
+
+Queries:
+
+1)No of transactions by customer
+
+0: jdbc:hive2://> select c.cust_id,count(t.trans_id) from customers c join transactions t on c.cust_id = t.cust_id group by c.cust_id;
+
++------------+------+
+| c.cust_id  | _c1  |
++------------+------+
+| 4000001    | 8    |
+| 4000002    | 6    |
+| 4000003    | 3    |
+| 4000004    | 5    |
+| 4000005    | 5    |
+| 4000006    | 5    |
+| 4000007    | 6    |
+| 4000008    | 10   |
+| 4000009    | 6    |
+| 4000010    | 6    |
++------------+------+
+10 rows selected (23.641 seconds)
+
+2) Total transaction amount by customer
+
+     SELECT c.cust_id, c.last_name, c.first_name, SUM(t.amount)
+     FROM Customers c
+     JOIN Transactions t
+     ON c.cust_id = t.cust_id
+     GROUP BY c.cust_id, c.last_name, c.first_name;
+
+
+
++------------+--------------+---------------+---------------------+
+| c.cust_id  | c.last_name  | c.first_name  |         _c3         |
++------------+--------------+---------------+---------------------+
+| 4000001    | Kristina     | Chung         | 651.05              |
+| 4000002    | Paige        | Chen          | 706.97              |
+| 4000003    | Sherri       | Melton        | 527.5899999999999   |
+| 4000004    | Gretchen     | Hill          | 337.06              |
+| 4000005    | Karen        | Puckett       | 325.15              |
+| 4000006    | Patrick      | Song          | 539.38              |
+| 4000007    | Elsie        | Hamilton      | 699.5500000000001   |
+| 4000008    | Hazel        | Bender        | 859.42              |
+| 4000009    | Malcolm      | Wagner        | 457.83              |
+| 4000010    | Dolores      | McLaughlin    | 447.09000000000003  |
++------------+--------------+---------------+---------------------+
+10 rows selected (22.578 seconds)
+
+
+3) Get top 3 customers by transaction amount
+
+SELECT c.cust_id, c.last_name, c.first_name, SUM(t.amount) AS Total_Amount
+FROM Customers c
+INNER JOIN Transactions t
+ON c.cust_id = t.cust_id
+GROUP BY c.cust_id, c.last_name, c.first_name
+ORDER BY Total_Amount DESC
+LIMIT 3;
+
+
+
++------------+--------------+---------------+--------------------+
+| c.cust_id  | c.last_name  | c.first_name  |    total_amount    |
++------------+--------------+---------------+--------------------+
+| 4000008    | Hazel        | Bender        | 859.42             |
+| 4000002    | Paige        | Chen          | 706.97             |
+| 4000007    | Elsie        | Hamilton      | 699.5500000000001  |
++------------+--------------+---------------+--------------------+
+3 rows selected (43.154 seconds)
+
+
+
+4) No of transactions by customer and mode of payment
+
+    SELECT cust_id, pymt_mode, COUNT(*) AS No_of_transactions
+    FROM Transactions
+    GROUP BY cust_id, pymt_mode;
+
+
++----------+------------+---------------------+
+| cust_id  | pymt_mode  | no_of_transactions  |
++----------+------------+---------------------+
+| 4000001  | cash       | 1                   |
+| 4000001  | credit     | 7                   |
+| 4000002  | cash       | 1                   |
+| 4000002  | credit     | 5                   |
+| 4000003  | credit     | 3                   |
+| 4000004  | cash       | 4                   |
+| 4000004  | credit     | 1                   |
+| 4000005  | cash       | 1                   |
+| 4000005  | credit     | 4                   |
+| 4000006  | credit     | 5                   |
+| 4000007  | credit     | 6                   |
+| 4000008  | credit     | 10                  |
+| 4000009  | credit     | 6                   |
+| 4000010  | credit     | 6                   |
++----------+------------+---------------------+
+14 rows selected (16.314 seconds)
+
+5) Get top 3 cities which has more transactions
+
+
+SELECT city, COUNT(*) as Transactions
+FROM Transactions
+GROUP BY city
+ORDER BY Transactions DESC
+LIMIT 3;
+
++-------------+---------------+
+|    city     | transactions  |
++-------------+---------------+
+| Honolulu    | 3             |
+| Columbus    | 3             |
+| Everett     | 2             |
++-------------+---------------+
+3 rows selected (38.952 seconds)
+
+
+6) Get month wise highest transaction
+
+   SELECT MONTH(trans_date), MAX(amount)
+   FROM Transactions
+   GROUP BY MONTH(trans_date);
+
+
++-------+---------+
+|  _c0  |   _c1   |
++-------+---------+
+| NULL  | 198.44  |
++-------+---------+
+1 row selected (18.357 seconds)
+
+
+7) Get sample transactions
+
+SELECT trans_id, trans_date, cust_id, amount, category, desc, city, state, pymt_mode 
+FROM Transactions 
+LIMIT 10;
+
+
+
++-----------+-------------+----------+---------+-------------------------+------------------------------------+-----------------+-----------------+------------+
+| trans_id  | trans_date  | cust_id  | amount  |        category         |                desc                |      city       |      state      | pymt_mode  |
++-----------+-------------+----------+---------+-------------------------+------------------------------------+-----------------+-----------------+------------+
+| 0         | NULL        | 4000001  | 40.33   | Exercise & Fitness      | Cardio Machine Accessories         | Clarksville     | Tennessee       | credit     |
+| 1         | NULL        | 4000002  | 198.44  | Exercise & Fitness      | Weightlifting Gloves               | Long Beach      | California      | credit     |
+| 2         | NULL        | 4000002  | 5.58    | Exercise & Fitness      | Weightlifting Machine Accessories  | Anaheim         | California      | credit     |
+| 3         | NULL        | 4000003  | 198.19  | Gymnastics              | Gymnastics Rings                   | Milwaukee       | Wisconsin       | credit     |
+| 4         | NULL        | 4000002  | 98.81   | Team Sports             | Field Hockey                       | Nashville       | Tennessee       | credit     |
+| 5         | NULL        | 4000004  | 193.63  | Outdoor Recreation      | Camping & Backpacking & Hiking     | Chicago         | Illinois        | credit     |
+| 6         | NULL        | 4000005  | 27.89   | Puzzles                 | Jigsaw Puzzles                     | Charleston      | South Carolina  | credit     |
+| 7         | NULL        | 4000006  | 96.01   | Outdoor Play Equipment  | Sandboxes                          | Columbus        | Ohio            | credit     |
+| 8         | NULL        | 4000006  | 10.44   | Winter Sports           | Snowmobiling                       | Des Moines      | Iowa            | credit     |
+| 9         | NULL        | 4000006  | 152.46  | Jumping                 | Bungee Jumping                     | St. Petersburg  | Florida         | credit     |
++-----------+-------------+----------+---------+-------------------------+------------------------------------+-----------------+-----------------+------------+
+10 rows selected (0.096 seconds)
+
+
+
+
+
+
+
+
+
+
+
+
